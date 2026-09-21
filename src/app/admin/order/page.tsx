@@ -149,13 +149,26 @@ function OrderDetail() {
             </a>
           </Section>
 
-          <Section title="Payment" description={o.payment_method === 'upi' ? 'Check your UPI app for this amount (note has the order number), then mark it paid.' : undefined}>
+          <Section title="Payment" description={o.payment_method === 'upi' ? 'Match the UTR below in your UPI app, then mark it paid.' : undefined}>
             <p className="text-sm">
               {o.payment_method === 'cod' ? 'Cash on delivery' : o.payment_method.toUpperCase()} · {inr(Number(o.total))} ·{' '}
               <span className={o.payment_status === 'paid' ? 'font-semibold text-emerald-700' : o.payment_status === 'failed' ? 'font-semibold text-red-700' : 'font-semibold'}>
                 {o.payment_status}
               </span>
             </p>
+            {o.payment_method === 'upi' ? (
+              o.upi_ref ? (
+                <div className="mt-3 rounded-xl bg-muted px-3 py-2.5">
+                  <p className="text-xs text-muted-foreground">Customer’s UPI reference (UTR)</p>
+                  <p className="font-mono text-base font-semibold tracking-wider">{o.upi_ref}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Search this number in your UPI app’s history and check the amount is {inr(Number(o.total))}.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-muted-foreground">No UPI reference submitted yet.</p>
+              )
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               {o.payment_status !== 'paid' && (
                 <Button className="h-9" disabled={busy} onClick={() => setPayment('paid')}>

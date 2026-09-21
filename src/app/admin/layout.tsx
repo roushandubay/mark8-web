@@ -97,6 +97,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           };
         }
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        const o = payload.new as { id: string; order_number: string; upi_ref: string | null; upi_submitted_at: string | null; payment_status: string };
+        // Only the moment a customer submits a UPI reference (not every admin edit).
+        if (!o.upi_ref || o.payment_status !== 'pending' || !o.upi_submitted_at) return;
+        if (Date.now() - new Date(o.upi_submitted_at).getTime() > 60_000) return;
+        const open = () => router.push(`/admin/order/?id=${o.id}`);
+        toast.info(`UPI payment to verify · ${o.order_number}`, { description: `UTR ${o.upi_ref}`, duration: 15000, action: { label: 'Open', onClick: open } });
+        window.dispatchEvent(new Event('mark8:new-order'));
+      })
       .subscribe();
     return () => {
       supabase.removeChannel(channel);

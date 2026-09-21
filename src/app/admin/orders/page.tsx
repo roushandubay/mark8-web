@@ -27,7 +27,7 @@ export default function Orders() {
   const orders = useAsync(async () => {
     let query = supabase
       .from('orders')
-      .select('id, order_number, status, payment_method, payment_status, total, created_at, shipping_address, order_items(quantity)')
+      .select('id, order_number, status, payment_method, payment_status, upi_ref, total, created_at, shipping_address, order_items(quantity)')
       .order('created_at', { ascending: false })
       .limit(200);
     if (status) query = query.eq('status', status);
@@ -90,7 +90,7 @@ export default function Orders() {
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(o.created_at)}</td>
                     <td className="px-4 py-3">{items}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {o.payment_method.toUpperCase()} · {o.payment_status}
+                      {o.payment_method.toUpperCase()} · {o.payment_method === 'upi' && o.payment_status === 'pending' && o.upi_ref ? 'verify UTR' : o.payment_status}
                     </td>
                     <td className="px-4 py-3">
                       <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', TONE[o.status] ?? 'bg-muted')}>{statusLabel(o.status)}</span>
