@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Empty, Loading, PageHeader, Select } from '@/components/admin/ui';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,11 @@ export default function Orders() {
     if (error) throw error;
     return data ?? [];
   }, [status, q]);
+  const { reload } = orders;
+  useEffect(() => {
+    window.addEventListener('mark8:new-order', reload);
+    return () => window.removeEventListener('mark8:new-order', reload);
+  }, [reload]);
 
   return (
     <>

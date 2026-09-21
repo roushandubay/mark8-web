@@ -49,6 +49,17 @@ function OrderDetail() {
     order.reload();
   };
 
+  const setPayment = async (status: 'paid' | 'failed' | 'pending') => {
+    setBusy(true);
+    const { error } = await supabase.rpc('admin_set_payment_status', { p_order: id, p_status: status, p_note: null });
+    setBusy(false);
+    if (error) return toast.error(errorText(error));
+    toast.success(`Payment marked ${status}`);
+    order.reload();
+  };
+  const phone = String(addr.phone ?? '').replace(/\D/g, '');
+  const waHref = `https://wa.me/${phone.length === 10 ? `91${phone}` : phone}?text=${encodeURIComponent(`Hi ${addr.full_name}, this is MARK8 about your order ${o.order_number}.`)}`;
+
   return (
     <>
       <Link href="/admin/orders/" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
@@ -133,10 +144,35 @@ function OrderDetail() {
               <br />
               +91 {addr.phone}
             </p>
-            <p className="mt-4 text-sm font-medium">Payment</p>
-            <p className="text-sm text-muted-foreground">
-              {o.payment_method === 'cod' ? 'Cash on delivery' : o.payment_method.toUpperCase()} · {o.payment_status}
+            <a href={waHref} target="_blank" rel="noreferrer" className="mt-3 inline-flex h-9 items-center rounded-lg border border-border px-3 text-sm font-medium hover:bg-muted">
+              WhatsApp customer ↗
+            </a>
+          </Section>
+
+          <Section title="Payment" description={o.payment_method === 'upi' ? 'Check your UPI app for this amount (note has the order number), then mark it paid.' : undefined}>
+            <p className="text-sm">
+              {o.payment_method === 'cod' ? 'Cash on delivery' : o.payment_method.toUpperCase()} · {inr(Number(o.total))} ·{' '}
+              <span className={o.payment_status === 'paid' ? 'font-semibold text-emerald-700' : o.payment_status === 'failed' ? 'font-semibold text-red-700' : 'font-semibold'}>
+                {o.payment_status}
+              </span>
             </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {o.payment_status !== 'paid' && (
+                <Button className="h-9" disabled={busy} onClick={() => setPayment('paid')}>
+                  Mark paid
+                </Button>
+              )}
+              {o.payment_status === 'pending' && (
+                <Button variant="outline" className="h-9" disabled={busy} onClick={() => setPayment('failed')}>
+                  Mark failed
+                </Button>
+              )}
+              {o.payment_status !== 'pending' && (
+                <Button variant="outline" className="h-9" disabled={busy} onClick={() => setPayment('pending')}>
+                  Back to pending
+                </Button>
+              )}
+            </div>
           </Section>
         </div>
       </div>

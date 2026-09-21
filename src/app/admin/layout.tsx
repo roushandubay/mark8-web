@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import type { Session } from '@supabase/supabase-js';
 import {
   BadgePercent,
@@ -51,6 +52,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [session, setSession] = useState<Session | null>(null);
   const [menu, setMenu] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [unseen, setUnseen] = useState(0);
 
   useEffect(() => {
     const check = async (s: Session | null) => {
@@ -65,6 +68,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => setMenu(false), [pathname]);
+  useEffect(() => {
+    if (pathname.startsWith('/admin/orders')) setUnseen(0);
+  }, [pathname]);
+
+  // Live "new order" alerts while the panel is open (realtime on public.orders).
+  useEffect(() => {
+    if (state !== 'ok') return;
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+    const channel = supabase
+      .channel('admin-orders')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        const o = payload.new as { id: string; order_number: string; total: number; payment_method: string; shipping_address: { full_name?: string; city?: string } };
+        const who = o.shipping_address?.full_name ?? 'a customer';
+        const total = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(o.total));
+        const text = `${who}${o.shipping_address?.city ? `, ${o.shipping_address.city}` : ''} · ${total} · ${o.payment_method === 'cod' ? 'COD' : o.payment_method.toUpperCase()}`;
+        const open = () => router.push(`/admin/order/?id=${o.id}`);
+        toast.success(`New order ${o.order_number}`, { description: `Placed by ${text}`, duration: 15000, action: { label: 'Open', onClick: open } });
+        setUnseen((n) => n + 1);
+        window.dispatchEvent(new Event('mark8:new-order'));
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
+          const n = new Notification(`New order ${o.order_number}`, { body: `Placed by ${text}`, icon: '/brand/monogram.png' });
+          n.onclick = () => {
+            window.focus();
+            open();
+          };
+        }
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [state, router]);
 
   const signIn = () =>
     supabase.auth.signInWithOAuth({
@@ -125,6 +160,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <n.icon className="size-4" strokeWidth={1.75} />
             {n.label}
+            {n.href === '/admin/orders/' && unseen > 0 ? (
+              <span className="ml-auto rounded-full bg-brand px-1.5 text-[11px] font-semibold text-white">{unseen}</span>
+            ) : null}
           </Link>
         );
       })}

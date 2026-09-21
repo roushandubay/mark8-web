@@ -34,14 +34,20 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm">
             {email ? <li><a href={`mailto:${email}`}>{email}</a></li> : null}
             <li><Link href="/privacy/">Privacy policy</Link></li>
-            <li><Link href="/terms/">Terms of use</Link></li>
+            <li><Link href="/terms/">Terms &amp; Conditions</Link></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-6 text-xs text-muted-foreground md:flex-row md:justify-between md:px-8">
-          <span>© {new Date().getFullYear()} MARK8. All rights reserved.</span>
-          <span>Built by NyxonLab</span>
+          <span>
+            © {new Date().getFullYear()} MARK8. All rights reserved. ·{' '}
+            <Link href="/terms/" className="hover:text-foreground">Terms &amp; Conditions</Link> ·{' '}
+            <Link href="/privacy/" className="hover:text-foreground">Privacy</Link>
+          </span>
+          <span className="font-[family-name:var(--font-montserrat)] text-[13px] tracking-wide">
+            <span className="font-light">Developed By</span> <span className="font-medium text-foreground">NyxonLab</span>
+          </span>
         </div>
       </div>
     </footer>

@@ -138,12 +138,12 @@ export default function Website() {
           </div>
         </Section>
 
-        <Section title="Legal pages" description="Needed for Google sign-in publishing. Separate paragraphs with a blank line.">
+        <Section title="Legal pages" description="Needed for Google sign-in publishing. Separate paragraphs with a blank line; start a line with ## to make it a heading. Starter text — have a lawyer review it.">
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Privacy policy">
               <Textarea rows={12} value={site.privacy ?? ''} onChange={(e) => set('privacy', e.target.value)} />
             </Field>
-            <Field label="Terms of use">
+            <Field label="Terms & Conditions">
               <Textarea rows={12} value={site.terms ?? ''} onChange={(e) => set('terms', e.target.value)} />
             </Field>
           </div>
