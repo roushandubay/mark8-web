@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { Session } from '@supabase/supabase-js';
 import {
   BadgePercent,
+  Bug,
   Boxes,
   FolderTree,
   Globe,
@@ -39,6 +40,7 @@ const NAV = [
   { href: '/admin/reviews/', label: 'Reviews', icon: MessageSquare },
   { href: '/admin/customers/', label: 'Customers', icon: Users },
   { href: '/admin/settings/', label: 'Store settings', icon: Settings },
+  { href: '/admin/errors/', label: 'App errors', icon: Bug },
 ];
 
 type State = 'loading' | 'signed-out' | 'forbidden' | 'ok';
